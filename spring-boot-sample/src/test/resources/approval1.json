@@ -1,0 +1,39 @@
+{
+  "downPayment": 10000,
+  "termInMonths": 48,
+  "applicant": {
+    "firstName": "Michael",
+    "lastName": "Jordan",
+    "dateOfBirth": "01-01-1970",
+    "ssn": "180890175",
+    "phoneNumber": "902-540-1020",
+    "address": {
+      "streetNumber": "1020",
+      "streetName": "King Street",
+      "city": "Chicago",
+      "state": "IL",
+      "zipcode": "60318"
+    },
+    "incomes": [
+      {
+        "type": "SALARY",
+        "monthlyAmount": "8000.00"
+      }
+    ],
+    "expenses": [
+      {
+        "type": "CREDIT_CARD",
+        "monthlyAmount": "500.00"
+      },
+      {
+        "type": "MORTGAGE",
+        "monthlyAmount": "1500.00"
+      }
+    ]
+  },
+  "vehicle": {
+    "make": "Porche",
+    "model": "Cayenne Turbo GT",
+    "year": "2025"
+  }
+}
