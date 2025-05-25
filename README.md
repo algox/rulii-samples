@@ -1,4 +1,4 @@
-# _Rulii Samples
+# Rulii Samples
 **Working example of Rulii and Rulii spring**
 
 ## Examples
