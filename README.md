@@ -1,5 +1,5 @@
 # Rulii Samples
-**Working example of Rulii and Rulii spring**
+**Working examples of Rulii and Rulii Spring in action**
 
 ## Examples
 
