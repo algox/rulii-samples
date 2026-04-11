@@ -20,11 +20,8 @@ package org.rulii.sample;
 import org.rulii.bind.Bindings;
 import org.rulii.ruleset.RuleSet;
 import org.rulii.ruleset.RuleSetExecutionStatus;
-import org.rulii.validation.rules.alphnumeric.AlphaNumericValidationRule;
-import org.rulii.validation.rules.notempty.NotEmptyValidationRule;
-import org.rulii.validation.rules.notnull.NotNullValidationRule;
-import org.rulii.validation.rules.numeric.NumericValidationRule;
-import org.rulii.validation.rules.uppercase.UpperCaseValidationRule;
+
+import static org.rulii.validation.rules.Validators.*;
 
 public class RuleSetRunner {
 
@@ -38,11 +35,11 @@ public class RuleSetRunner {
                 .param("a", String.class)
                 .param("b", Integer.class)
                 .param("c", String.class)
-                .rule(new AlphaNumericValidationRule("a"))
-                .rule(new NotEmptyValidationRule("a"))
-                .rule(new NotNullValidationRule("b"))
-                .rule(new NumericValidationRule("b"))
-                .rule(new UpperCaseValidationRule("c"))
+                .rule(alpha(binding("a")).build())
+                .rule(notEmpty(binding("a")).build())
+                .rule(notNull(binding("b")).build())
+                .rule(numeric(binding("b")).build())
+                .rule(upperCase(binding("c")).build())
                 .validating()
                 .build();
 
