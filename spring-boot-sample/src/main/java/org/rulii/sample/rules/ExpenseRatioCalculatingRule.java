@@ -48,6 +48,6 @@ public class ExpenseRatioCalculatingRule {
 
         totalExpenses = totalExpenses + monthlyPayment;
         double expenseRatio = totalExpenses / totalIncome;
-        bindings.bind("expenseRatio", expenseRatio);
+        bindings.setValueOrBind("expenseRatio", expenseRatio);
     }
 }

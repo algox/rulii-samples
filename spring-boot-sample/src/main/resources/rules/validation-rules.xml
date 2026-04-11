@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:r="http://www.rulii.org/schema/rulii"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.rulii.org/schema/rulii
+           https://www.rulii.org/spring/rulii-spring.xsd">
+
+    <!-- ======================================================
+         Loan Application Validation Rules
+         Bindings: applicant, vehicle, downPayment, termInMonths
+    ====================================================== -->
+
+    <r:ruleset name="applicationRules" description="Top-level loan application field validation" validating="true">
+        <r:rules>
+            <r:notNull     name="applicantNotNull"   binding="applicant"    errorCode="loan.error.101"/>
+            <r:notNull     name="vehicleNotNull"     binding="vehicle"      errorCode="loan.error.102"/>
+            <r:decimalMin  name="downPaymentMin"     binding="downPayment"  errorCode="loan.error.103" min="0.00"/>
+            <r:min         name="termInMonthsMin"    binding="termInMonths" errorCode="loan.error.104" min="12"/>
+            <r:max         name="termInMonthsMax"    binding="termInMonths" errorCode="loan.error.105" max="60"/>
+        </r:rules>
+    </r:ruleset>
+
+    <!-- ======================================================
+         Applicant Validation Rules
+         Bindings: firstName, lastName, ssn, phoneNumber, dateOfBirth, address, incomes, expenses
+    ====================================================== -->
+
+    <r:ruleset name="applicantRules" description="Applicant field validation" validating="true">
+        <r:rules>
+            <r:notBlank name="firstNameNotBlank"   binding="firstName"   errorCode="loan.error.201"/>
+            <r:notBlank name="lastNameNotBlank"    binding="lastName"    errorCode="loan.error.202"/>
+            <r:notBlank name="ssnNotBlank"         binding="ssn"         errorCode="loan.error.203"/>
+            <r:notBlank name="phoneNumberNotBlank" binding="phoneNumber" errorCode="loan.error.204"/>
+            <r:notNull  name="dateOfBirthNotNull"  binding="dateOfBirth" errorCode="loan.error.205"/>
+            <r:notNull  name="addressNotNull"      binding="address"     errorCode="loan.error.206"/>
+            <r:notNull  name="incomesNotNull"      binding="incomes"     errorCode="loan.error.207"/>
+            <r:notNull  name="expensesNotNull"     binding="expenses"    errorCode="loan.error.208"/>
+        </r:rules>
+    </r:ruleset>
+
+    <!-- ======================================================
+         Address Validation Rules
+         Bindings: streetNumber, streetName, city, state, zipcode
+    ====================================================== -->
+
+    <r:ruleset name="addressRules" description="Address field validation" validating="true">
+        <r:rules>
+            <r:notBlank name="streetNumberNotBlank" binding="streetNumber" errorCode="loan.error.301"/>
+            <r:notBlank name="streetNameNotBlank"   binding="streetName"   errorCode="loan.error.302"/>
+            <r:notBlank name="cityNotBlank"         binding="city"         errorCode="loan.error.303"/>
+            <r:notBlank name="stateNotBlank"        binding="state"        errorCode="loan.error.304"/>
+            <r:notNull  name="zipcodeNotNull"       binding="zipcode"      errorCode="loan.error.305"/>
+        </r:rules>
+    </r:ruleset>
+
+    <!-- ======================================================
+         Vehicle Validation Rules
+         Bindings: make, model, year
+    ====================================================== -->
+
+    <r:ruleset name="vehicleRules" description="Vehicle field validation" validating="true">
+        <r:rules>
+            <r:notBlank name="makeNotBlank"  binding="make"  errorCode="loan.error.401"/>
+            <r:notBlank name="modelNotBlank" binding="model" errorCode="loan.error.402"/>
+            <r:min      name="yearMin"       binding="year"  errorCode="loan.error.403" min="2000"/>
+        </r:rules>
+    </r:ruleset>
+
+    <!-- ======================================================
+         Income Validation Rules
+         Bindings: type, monthlyAmount
+    ====================================================== -->
+
+    <r:ruleset name="incomeRules" description="Income field validation" validating="true">
+        <r:rules>
+            <r:notNull    name="incomeTypeNotNull"          binding="type"          errorCode="loan.error.501"/>
+            <r:decimalMin name="incomeMonthlyAmountMin"     binding="monthlyAmount" errorCode="loan.error.502" min="0.00"/>
+        </r:rules>
+    </r:ruleset>
+
+    <!-- ======================================================
+         Expense Validation Rules
+         Bindings: type, monthlyAmount
+    ====================================================== -->
+
+    <r:ruleset name="expenseRules" description="Expense field validation" validating="true">
+        <r:rules>
+            <r:notNull    name="expenseTypeNotNull"         binding="type"          errorCode="loan.error.601"/>
+            <r:decimalMin name="expenseMonthlyAmountMin"    binding="monthlyAmount" errorCode="loan.error.602" min="0.00"/>
+        </r:rules>
+    </r:ruleset>
+
+</beans>

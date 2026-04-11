@@ -1,7 +1,7 @@
 /*
  * This software is licensed under the Apache 2 license, quoted below.
  *
- * Copyright (c) 1999-2025, Algorithmx Inc.
+ * Copyright (c) 1999-2026, Algorithmx Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,93 +29,22 @@ import org.rulii.sample.rules.*;
 import org.rulii.sample.service.PaymentCalculatorService;
 import org.rulii.sample.service.VehicleService;
 import org.rulii.spring.annotation.RuleScan;
-import org.rulii.validation.rules.max.MaxValidationRule;
-import org.rulii.validation.rules.min.DecimalMinValidationRule;
-import org.rulii.validation.rules.min.MinValidationRule;
-import org.rulii.validation.rules.notblank.NotBlankValidationRule;
-import org.rulii.validation.rules.notnull.NotNullValidationRule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.math.BigDecimal;
 
 import static org.rulii.model.action.Actions.action;
 import static org.rulii.model.condition.Conditions.condition;
 import static org.rulii.model.function.Functions.function;
 
 @Configuration
-@RuleScan(scanBasePackages = "org.rulii.sample.rules")
+@RuleScan(
+        scanBasePackages = "org.rulii.sample.rules",
+        xmlLocations     = "classpath:rules/"
+)
 public class RuleConfig {
 
     public RuleConfig() {
         super();
-    }
-
-    @Bean
-    public RuleSet<?> applicationRules() {
-        return RuleSet.builder().with("loanApplicationRules")
-                .validating()
-                .rule(new NotNullValidationRule("applicant", "loan.error.101"))
-                .rule(new NotNullValidationRule("vehicle", "loan.error.102"))
-                .rule(new DecimalMinValidationRule("downPayment", "loan.error.103", new BigDecimal("0.00"), true))
-                .rule(new MinValidationRule("termInMonths", "loan.error.104", 12))
-                .rule(new MaxValidationRule("termInMonths", "loan.error.105", 60))
-                .build();
-    }
-
-    @Bean
-    public RuleSet<?> applicantRules() {
-        return RuleSet.builder().with("applicantRules")
-                .validating()
-                .rule(new NotBlankValidationRule("firstName", "loan.error.201"))
-                .rule(new NotBlankValidationRule("lastName", "loan.error.202"))
-                .rule(new NotBlankValidationRule("ssn", "loan.error.203"))
-                .rule(new NotBlankValidationRule("phoneNumber", "loan.error.204"))
-                .rule(new NotNullValidationRule("dateOfBirth", "loan.error.205"))
-                .rule(new NotNullValidationRule("address", "loan.error.206"))
-                .rule(new NotNullValidationRule("incomes", "loan.error.207"))
-                .rule(new NotNullValidationRule("expenses", "loan.error.208"))
-                .build();
-    }
-
-    @Bean
-    public RuleSet<?> addressRules() {
-        return RuleSet.builder().with("addressRules")
-                .validating()
-                .rule(new NotBlankValidationRule("streetNumber", "loan.error.301"))
-                .rule(new NotBlankValidationRule("streetName", "loan.error.302"))
-                .rule(new NotBlankValidationRule("city", "loan.error.303"))
-                .rule(new NotBlankValidationRule("state", "loan.error.304"))
-                .rule(new NotNullValidationRule("zipcode", "loan.error.305"))
-                .build();
-    }
-
-    @Bean
-    public RuleSet<?> vehicleRules() {
-        return RuleSet.builder().with("vehicleRules")
-                .validating()
-                .rule(new NotBlankValidationRule("make", "loan.error.401"))
-                .rule(new NotBlankValidationRule("model", "loan.error.402"))
-                .rule(new MinValidationRule("year", "loan.error.403", 2000))
-                .build();
-    }
-
-    @Bean
-    public RuleSet<?> incomeRules() {
-        return RuleSet.builder().with("incomeRules")
-                .validating()
-                .rule(new NotNullValidationRule("type", "loan.error.501"))
-                .rule(new DecimalMinValidationRule("monthlyAmount", "loan.error.502", new BigDecimal("0.00"), true))
-                .build();
-    }
-
-    @Bean
-    public RuleSet<?> expenseRules() {
-        return RuleSet.builder().with("expenseRules")
-                .validating()
-                .rule(new NotNullValidationRule("type", "loan.error.601"))
-                .rule(new DecimalMinValidationRule("monthlyAmount", "loan.error.602", new BigDecimal("0.00"), true))
-                .build();
     }
 
     @Bean
@@ -152,9 +81,7 @@ public class RuleConfig {
                 .rule(Rule.builder().build(Expense40UpRatioRule.class))
                 .rule(Rule.builder()
                         .name("defaultApproveRule")
-                        .then(action((LoanDecision decision) -> {
-                            decision.setDecision(LoanDecision.DECISION.APPROVED);
-                        }))
+                        .then(action((LoanDecision decision) -> decision.setDecision(LoanDecision.DECISION.APPROVED)))
                         .build())
                 .finalizer(action((LoanDecision decision, Double vehiclePrice, Double monthlyPayment) -> {
                     decision.setVehiclePrice(vehiclePrice);
