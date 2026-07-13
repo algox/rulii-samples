@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:r="http://www.rulii.org/schema/rulii"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.rulii.org/schema/rulii
+           https://www.rulii.org/spring/rulii-spring.xsd">
+
+    <r:scripting defaultLanguage="el"/>
+
+    <!-- An XML-declared rule, referenced by the flow via bean-ref (wiring time). -->
+    <r:rule name="highValueReviewRule"
+            description="Orders of $500 or more get shipping insurance"
+            given="#ctx.amount &gt;= ${fulfillment.insurance-threshold:500}"
+            then="#ctx.notes.add('High value order - shipping insurance added')"/>
+
+    <!-- Sub-flows launched asynchronously by the main flow. They run in
+         IMMUTABLE mode: each gets its own context over a read-only snapshot,
+         and its result travels back through the CompletableFuture. -->
+
+    <r:ruleflow name="chargePaymentFlow" description="Charges the payment (slow external call)">
+        <r:apply as="ref">#ctx.paymentService.charge(#ctx.orderId, #ctx.amount)</r:apply>
+        <r:returning>#ctx.ref</r:returning>
+    </r:ruleflow>
+
+    <r:ruleflow name="shippingLabelFlow" description="Creates the shipping label (slow external call)">
+        <r:apply as="tracking">#ctx.shippingService.createLabel(#ctx.orderId)</r:apply>
+        <r:returning>#ctx.tracking</r:returning>
+    </r:ruleflow>
+
+    <!-- ======================================================
+         The main fulfillment workflow.
+         Caller pre-binds: orderId, amount, notes, paymentRef,
+                           trackingNumber, estimatedDelivery
+    ====================================================== -->
+
+    <r:ruleflow name="fulfillmentFlow" description="Processes an order from stock check to shipment">
+        <r:param name="orderId" type="java.lang.String"/>
+        <r:param name="amount" type="java.lang.Double"/>
+
+        <!-- "status" is pre-bound by the caller: XML <r:exit/> has no result
+             extractor, so early-exit paths report through the binding. -->
+        <r:bind name="inStock">false</r:bind>
+
+        <!-- 1. Registry lookup by NAME at execution time: a classpath-scanned
+             @Rule class with an injected InventoryService. -->
+        <r:run name="inventoryCheckRule"/>
+        <r:when condition="#ctx.inStock == false">
+            <r:then>
+                <r:execute>#ctx.status = 'BACKORDERED'</r:execute>
+                <r:exit/>
+            </r:then>
+        </r:when>
+
+        <!-- 2. Spring bean reference, resolved at wiring time. -->
+        <r:run bean-ref="highValueReviewRule"/>
+
+        <!-- 3. Fan out the two slow external calls on the rulii executor. -->
+        <!-- Step-level handler: a service exception inside a SpEL expression
+             surfaces as org.rulii.script.EvaluationException - catch it here
+             and the flow continues (the future completes with null). -->
+        <r:async-run bean-ref="chargePaymentFlow" as="paymentFuture" context-mode="immutable">
+            <r:on-exception exception="org.rulii.script.EvaluationException">
+                <r:execute>#ctx.notes.add('Payment declined by processor')</r:execute>
+            </r:on-exception>
+        </r:async-run>
+        <r:async-run bean-ref="shippingLabelFlow" as="labelFuture" context-mode="immutable"/>
+        <r:await-all names="paymentFuture, labelFuture" timeout="5" unit="seconds"/>
+
+        <!-- A future whose failure was handled completes with null. -->
+        <r:when condition="#ctx.paymentFuture.get() == null">
+            <r:then>
+                <r:execute>#ctx.status = 'PAYMENT_FAILED'</r:execute>
+                <r:exit/>
+            </r:then>
+        </r:when>
+        <r:execute>#ctx.paymentRef = #ctx.paymentFuture.get()</r:execute>
+        <r:execute>#ctx.trackingNumber = #ctx.labelFuture.get()</r:execute>
+
+        <!-- 4. Registry lookup again: a scanned @Rule with @Autowired Clock
+             and an @Value-injected delivery window. -->
+        <r:run name="deliveryEstimateRule"/>
+
+        <r:execute>#ctx.status = 'SHIPPED'</r:execute>
+
+        <!-- Safety net for anything unexpected (inventory system down, ...). -->
+        <r:on-exception exception="java.lang.Exception">
+            <r:execute>#ctx.status = 'MANUAL_REVIEW'</r:execute>
+        </r:on-exception>
+
+        <r:returning>#ctx.status</r:returning>
+    </r:ruleflow>
+
+</beans>
