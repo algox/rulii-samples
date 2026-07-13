@@ -25,7 +25,7 @@ import org.rulii.annotation.Then;
 
 /**
  * A Rule written as an annotated class — the declarative style.
- *
+ *2
  * The method parameter names (ex: "visitorName") are matched against
  * Binding names at execution time; that is how a Rule receives its inputs.
  */
