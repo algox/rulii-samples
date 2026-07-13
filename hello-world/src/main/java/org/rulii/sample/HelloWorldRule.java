@@ -1,7 +1,7 @@
 /*
  * This software is licensed under the Apache 2 license, quoted below.
  *
- * Copyright (c) 1999-2025, Algorithmx Inc.
+ * Copyright (c) 1999-2026, Algorithmx Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,18 @@ package org.rulii.sample;
 
 import org.rulii.annotation.Description;
 import org.rulii.annotation.Given;
+import org.rulii.annotation.Otherwise;
 import org.rulii.annotation.Rule;
 import org.rulii.annotation.Then;
-import org.rulii.bind.Bindings;
 
+/**
+ * A Rule written as an annotated class — the declarative style.
+ *
+ * The method parameter names (ex: "visitorName") are matched against
+ * Binding names at execution time; that is how a Rule receives its inputs.
+ */
 @Rule
-@Description("Rule that prints Hello world!")
+@Description("Greets a visitor on their first visit.")
 public class HelloWorldRule {
 
     public HelloWorldRule() {
@@ -32,18 +38,17 @@ public class HelloWorldRule {
     }
 
     @Given
-    public boolean shouldSayHi(boolean flag) {
-        return flag;
+    public boolean isFirstVisit(Boolean firstVisit) {
+        return firstVisit;
     }
 
     @Then
-    public void sayHi() {
-        System.out.println("Declarative : Hello World!");
+    public void greet(String visitorName) {
+        System.out.println("[class-based] Hello " + visitorName + ", welcome to rulii!");
     }
 
-    public static void main(String[] args) {
-
-
-
+    @Otherwise
+    public void welcomeBack(String visitorName) {
+        System.out.println("[class-based] Welcome back " + visitorName + "!");
     }
 }
