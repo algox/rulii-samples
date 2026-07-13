@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:r="http://www.rulii.org/schema/rulii"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.rulii.org/schema/rulii
+           https://www.rulii.org/spring/rulii-spring.xsd">
+
+    <!-- All expressions in this file are SpEL ("el" is also the default). -->
+    <r:scripting defaultLanguage="el"/>
+
+    <!-- ======================================================
+         Order validation.
+         Runtime bindings: email, total, itemCount, destinationCountry
+         Violation messages come from application.yaml via
+         ${property} placeholders - change the wording without
+         touching the rules. {0} is the offending value.
+    ====================================================== -->
+
+    <r:ruleset name="orderValidationRules" description="Checkout form validation" validating="true">
+        <r:rules>
+            <r:notBlank   name="emailRequired"  binding="email"     errorCode="checkout.email.blank"
+                          errorMessage="${checkout.messages.email-blank}"/>
+            <r:email      name="emailValid"     binding="email"     errorCode="checkout.email.invalid"
+                          errorMessage="${checkout.messages.email-invalid}"/>
+            <r:decimalMin name="totalPositive"  binding="total"     errorCode="checkout.total.min"     min="0.01"
+                          errorMessage="${checkout.messages.total-min}"/>
+            <r:min        name="itemCountMin"   binding="itemCount" errorCode="checkout.items.min"     min="1"
+                          errorMessage="${checkout.messages.items-min}"/>
+            <r:in name="countryAllowed" binding="destinationCountry" errorCode="checkout.country.unsupported"
+                  errorMessage="${checkout.messages.country-unsupported}">
+                <r:item>US</r:item>
+                <r:item>CA</r:item>
+                <r:item>GB</r:item>
+                <r:item>AU</r:item>
+                <r:item>DE</r:item>
+            </r:in>
+        </r:rules>
+    </r:ruleset>
+
+    <!-- ======================================================
+         Shipping cost rules.
+         Runtime bindings: total, itemCount, destinationCountry,
+                           expedited, shippingCost (pre-bound to 0.0)
+
+         ${property:default} placeholders resolve against
+         application.yaml at startup - change the config, not the rules.
+    ====================================================== -->
+
+    <r:ruleset name="shippingRules" description="Computes the shipping cost for an order"
+               initializer="#ctx.shippingCost = ${shipping.base:5.99}">
+        <r:rules>
+
+            <!-- The terse one-liner form: given / then / otherwise as attributes. -->
+            <r:rule name="freeShippingRule"
+                    description="Orders over the free-shipping threshold ship free"
+                    given="#ctx.total &gt;= ${shipping.free-threshold:75}"
+                    then="#ctx.shippingCost = 0.0"/>
+
+            <!-- The element form: multiple then actions, executed in order. -->
+            <r:rule name="internationalSurchargeRule"
+                    description="Non-US destinations pay a surcharge (even on free shipping)">
+                <r:given>#ctx.destinationCountry != 'US'</r:given>
+                <r:then>#ctx.shippingCost = #ctx.shippingCost + ${shipping.international-surcharge:9.00}</r:then>
+                <r:then>#ctx.notes.add('International surcharge applied for ' + #ctx.destinationCountry)</r:then>
+            </r:rule>
+
+            <r:rule name="expeditedShippingRule"
+                    description="Expedited delivery adds a flat fee"
+                    given="#ctx.expedited"
+                    then="#ctx.shippingCost = #ctx.shippingCost + ${shipping.expedited-fee:12.50}"/>
+
+        </r:rules>
+    </r:ruleset>
+
+</beans>

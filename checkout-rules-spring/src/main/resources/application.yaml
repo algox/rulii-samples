@@ -1,0 +1,13 @@
+shipping:
+  base: 5.99
+  free-threshold: 75
+  international-surcharge: 9.00
+  expedited-fee: 12.50
+
+checkout:
+  messages:
+    email-blank: Please provide an email address.
+    email-invalid: "{0} is not a valid email address."
+    total-min: The order total must be greater than zero.
+    items-min: Your cart is empty.
+    country-unsupported: Sorry, we do not ship to {0} yet.

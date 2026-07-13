@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:r="http://www.rulii.org/schema/rulii"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.rulii.org/schema/rulii
+           https://www.rulii.org/spring/rulii-spring.xsd">
+
+    <!-- Profile-gated rules: this bean only exists when the app runs with
+         the "holiday" profile active, e.g.
+             mvn spring-boot:run -Dspring-boot.run.profiles=holiday
+         Standard Spring profile semantics - @Profile works the same way
+         on @Rule-annotated classes discovered by classpath scan. -->
+
+    <beans profile="holiday">
+        <r:rule name="holidaySeasonRule"
+                description="Free expedited upgrade during the holiday season"
+                given="#ctx.expedited"
+                then="#ctx.shippingCost = #ctx.shippingCost - ${shipping.expedited-fee:12.50}"/>
+    </beans>
+
+</beans>
